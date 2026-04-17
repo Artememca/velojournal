@@ -1,4 +1,7 @@
-="UTF-8">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kharkiv Explorer 2026 | Bike Journal</title>
     <style>
@@ -192,7 +195,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Твои настройки Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDSfkUr0qnsR3O54L7NtYc2NWOnpNCmOvg",
             authDomain: "velojournall.firebaseapp.com",
@@ -212,7 +214,7 @@
         window.isAdmin = false;
         window.editId = null;
 
-        // Загрузка данных из облака
+        // Синхронизация с облаком
         onValue(tripsRef, (snapshot) => {
             const data = snapshot.val();
             myTrips = [];
@@ -252,7 +254,7 @@
                 km: Number(document.getElementById('inp-km').value)
             };
 
-            if(!tripData.district || totalMin <= 0) return alert("Заполни район и общее время!");
+            if(!tripData.district || totalMin <= 0) return alert("Заполни район и время!");
 
             if(window.editId) {
                 set(ref(db, 'trips/' + window.editId), tripData);
@@ -284,7 +286,7 @@
 
         window.deleteTrip = function(id) {
             if(!window.isAdmin) return;
-            if(confirm("Удалить эту запись из облака?")) { 
+            if(confirm("Удалить эту запись из Firebase?")) { 
                 remove(ref(db, 'trips/' + id));
             }
         }
@@ -300,7 +302,6 @@
             tbody.innerHTML = "";
             let tk = 0, tm = 0;
 
-            // Сортировка по дате (новые сверху)
             myTrips.slice().reverse().forEach(t => {
                 tk += t.km; tm += t.timeTotal;
                 tbody.innerHTML += `<tr>
@@ -336,7 +337,7 @@
     </script>
 
     <script>
-        // Код прелоадера
+        // Прелоадер
         function startLoading() {
             const btn = document.getElementById('power-btn');
             const status = document.getElementById('loader-status');
