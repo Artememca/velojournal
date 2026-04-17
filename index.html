@@ -5,39 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kharkiv Explorer 2026 | Bike Journal</title>
     <style>
-        :root {
-            --primary: #00d2ff;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #f1f5f9;
-            --accent: #10b981;
-            --edit-color: #f59e0b;
-        }
-
-        body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-        }
-
-        /* --- ПРЕЛОАДЕР --- */
-        #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.8)),
-                url('https://images.unsplash.com/photo-1502600148151-a49ca3e11523?q=80&w=1920') no-repeat center center;
-            background-size: cover;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
-        }
-
-        #power-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(8px); color: white; width: 280px; height: 70px;
-            font-size: 1.1rem; text-transform: uppercase; letter-spacing: 5px;
-            border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
-
+        :root { --primary: #00d2ff; --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); --text: #f1f5f9; --accent: #10b981; --edit-color: #f59e0b; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); }
+        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1502600148151-a49ca3e11523?q=80&w=1920') no-repeat center center; background-size: cover; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        #power-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(8px); color: white; width: 280px; height: 70px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 5px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #bike-icon { width: 50px; height: 50px; fill: white; display: none; position: absolute; }
         .btn-clicked { animation: rotate 0.5s ease-in-out; pointer-events: none; }
         @keyframes rotate { 100% { transform: rotate(360deg); } }
@@ -45,72 +16,37 @@
         .btn-clicked #bike-icon { display: block; animation: drive 0.8s 0.5s ease-in forwards; }
         @keyframes drive { 100% { transform: translateX(150vw); } }
         #loader-status { margin-top: 30px; font-size: 3rem; color: var(--primary); opacity: 0; }
-
-        /* --- КОНТЕНТ --- */
         #main-content { display: none; padding: 30px 15px; min-height: 100vh; }
         .container { max-width: 1100px; margin: 0 auto; }
-
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
         .stat-value { display: block; font-size: 1.3rem; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
-
-        /* АДМИН ПАНЕЛЬ */
-        #admin-section {
-            display: none;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px; border-radius: 20px; margin-bottom: 25px;
-            border: 1px solid var(--primary);
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;
-        }
-
+        #admin-section { display: none; background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--primary); grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
         .input-box { display: flex; flex-direction: column; gap: 4px; }
         .input-box label { font-size: 0.65rem; color: var(--primary); text-transform: uppercase; margin-left: 5px; font-weight: bold; }
-
         .time-group { display: flex; gap: 5px; }
-
-        input { 
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            padding: 10px; color: white; border-radius: 8px; outline: none; 
-            width: 100%; box-sizing: border-box; font-size: 0.9rem;
-        }
-        
+        input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); padding: 10px; color: white; border-radius: 8px; outline: none; width: 100%; box-sizing: border-box; font-size: 0.9rem; }
         input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
-
-        .btn-action { 
-            border: none; font-weight: bold; cursor: pointer; border-radius: 8px; 
-            color: white; height: 42px; margin-top: auto; transition: 0.2s;
-        }
+        .btn-action { border: none; font-weight: bold; cursor: pointer; border-radius: 8px; color: white; height: 42px; margin-top: auto; transition: 0.2s; }
         .btn-action:hover { opacity: 0.8; transform: translateY(-2px); }
         #btn-save { background: var(--accent); }
         #btn-save.edit-mode { background: var(--edit-color); }
-
-        /* ТАБЛИЦА */
         .table-container { background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; min-width: 650px; }
         th { padding: 15px 20px; text-transform: uppercase; font-size: 0.7rem; color: var(--primary); background: rgba(255, 255, 255, 0.03); letter-spacing: 1px; }
         td { padding: 15px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem; vertical-align: middle; }
-
         .controls { display: flex; gap: 8px; }
         .control-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.5; transition: 0.2s; }
         .control-btn:hover { opacity: 1; transform: scale(1.2); }
         .edit-btn { color: var(--edit-color); }
         .del-btn { color: #ef4444; }
-
-        .lock-icon {
-            position: fixed; bottom: 20px; right: 20px;
-            width: 45px; height: 45px; background: var(--card-bg);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border: 1px solid rgba(255,255,255,0.1); z-index: 100;
-        }
-
+        .lock-icon { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); z-index: 100; }
         body.loaded #preloader { display: none; }
         body.loaded #main-content { display: block; }
         .place-subtext { color: #94a3b8; font-size: 0.75rem; display: block; margin-top: 2px; }
     </style>
 </head>
 <body>
-
     <div id="preloader">
         <button id="power-btn" onclick="startLoading()">
             <span id="btn-text">ПОЕХАЛИ!</span>
@@ -125,77 +61,34 @@
                 <h1 style="letter-spacing: 2px;">KHARKIV EXPLORER 2026</h1>
                 <p style="color: #94a3b8; font-size: 0.9rem;">Вело-журнал Артемки</p>
             </header>
-
             <div class="stats-grid">
                 <div class="stat-card"><span class="stat-value" id="stat-dist">0 км</span>Общий путь</div>
                 <div class="stat-card"><span class="stat-value" id="stat-time">0 ч. 0 мин.</span>Время всего</div>
                 <div class="stat-card"><span class="stat-value" id="stat-count">0</span>Выездов</div>
             </div>
-
             <div id="admin-section">
-                <div class="input-box">
-                    <label>Район</label>
-                    <input type="text" id="inp-district" placeholder="Напр: Салтовка">
-                </div>
-
-                <div class="input-box">
-                    <label>Место (куда именно)</label>
-                    <input type="text" id="inp-place" placeholder="Напр: Карьер">
-                </div>
-                
-                <div class="input-box">
-                    <label>Дата</label>
-                    <input type="date" id="inp-date">
-                </div>
-
-                <div class="input-box">
-                    <label>Всего (Ч:М)</label>
-                    <div class="time-group">
-                        <input type="number" id="h-total" placeholder="Ч">
-                        <input type="number" id="m-total" placeholder="М">
-                    </div>
-                </div>
-
-                <div class="input-box">
-                    <label>Туда (Ч:М)</label>
-                    <div class="time-group">
-                        <input type="number" id="h-toward" placeholder="Ч">
-                        <input type="number" id="m-toward" placeholder="М">
-                    </div>
-                </div>
-
-                <div class="input-box">
-                    <label>Дистанция (Км)</label>
-                    <input type="number" id="inp-km" placeholder="Всего">
-                </div>
-
+                <div class="input-box"><label>Район</label><input type="text" id="inp-district" placeholder="Напр: Салтовка"></div>
+                <div class="input-box"><label>Место</label><input type="text" id="inp-place" placeholder="Напр: Карьер"></div>
+                <div class="input-box"><label>Дата</label><input type="date" id="inp-date"></div>
+                <div class="input-box"><label>Всего (Ч:М)</label><div class="time-group"><input type="number" id="h-total" placeholder="Ч"><input type="number" id="m-total" placeholder="М"></div></div>
+                <div class="input-box"><label>Туда (Ч:М)</label><div class="time-group"><input type="number" id="h-toward" placeholder="Ч"><input type="number" id="m-toward" placeholder="М"></div></div>
+                <div class="input-box"><label>Дистанция (Км)</label><input type="number" id="inp-km" placeholder="Всего"></div>
                 <button id="btn-save" class="btn-action" onclick="handleSave()">СОХРАНИТЬ</button>
             </div>
-
             <div class="table-container">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Маршрут</th>
-                            <th>Дата</th>
-                            <th>Время</th>
-                            <th>Км</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Маршрут</th><th>Дата</th><th>Время</th><th>Км</th><th>Действия</th></tr></thead>
                     <tbody id="table-body"></tbody>
                 </table>
             </div>
         </div>
     </div>
-
     <div class="lock-icon" onclick="adminLogin()">🔒</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Твои настройки Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDSfkUr0qnsR3O54L7NtYc2NWOnpNCmOvg",
             authDomain: "velojournall.firebaseapp.com",
@@ -210,13 +103,10 @@
         const db = getDatabase(app);
         const tripsRef = ref(db, 'trips');
 
-        // Глобальные переменные для доступа из HTML
-        window.SECRET_PASS = "7878"; 
         window.isAdmin = false;
         window.editId = null;
         window.myTrips = [];
 
-        // 1. ЗАГРУЗКА ИЗ ОБЛАКА (Синхронизация)
         onValue(tripsRef, (snapshot) => {
             const data = snapshot.val();
             window.myTrips = [];
@@ -228,13 +118,10 @@
             renderTable();
         });
 
-        // 2. ФУНКЦИЯ СОХРАНЕНИЯ (Firebase push/set)
         window.handleSave = function() {
             if(!window.isAdmin) return;
-            
             const totalMin = (Number(document.getElementById('h-total').value) * 60) + Number(document.getElementById('m-total').value);
             const towardMin = (Number(document.getElementById('h-toward').value) * 60) + Number(document.getElementById('m-toward').value);
-
             const tripData = {
                 district: document.getElementById('inp-district').value,
                 place: document.getElementById('inp-place').value,
@@ -243,32 +130,23 @@
                 timeToward: towardMin,
                 km: Number(document.getElementById('inp-km').value)
             };
-
-            if(!tripData.district || totalMin <= 0) return alert("Заполни район и время!");
+            if(!tripData.district || totalMin <= 0) return alert("Заполни данные!");
 
             if(window.editId) {
-                // Обновление существующего узла по ID
                 set(ref(db, 'trips/' + window.editId), tripData);
                 window.editId = null;
                 document.getElementById('btn-save').innerText = "СОХРАНИТЬ";
-                document.getElementById('btn-save').classList.remove('edit-mode');
             } else {
-                // Добавление нового узла в Firebase
                 push(tripsRef, tripData);
             }
             clearInputs();
         }
 
-        // 3. ФУНКЦИЯ УДАЛЕНИЯ (Firebase remove)
         window.deleteTrip = function(id) {
             if(!window.isAdmin) return;
-            // Теперь id — это строка вроде "-N...". Кавычки обязательны!
-            if(confirm("Удалить запись из облака?")) { 
-                remove(ref(db, 'trips/' + id));
-            }
+            if(confirm("Удалить запись?")) remove(ref(db, 'trips/' + id));
         }
 
-        // 4. РЕДАКТИРОВАНИЕ
         window.editTrip = function(id) {
             const t = window.myTrips.find(t => t.id === id);
             if(!t) return;
@@ -276,95 +154,48 @@
             document.getElementById('inp-district').value = t.district;
             document.getElementById('inp-place').value = t.place || "";
             document.getElementById('inp-date').value = t.date;
-            document.getElementById('h-total').value = Math.floor(t.timeTotal / 60) || "";
-            document.getElementById('m-total').value = t.timeTotal % 60 || "";
-            document.getElementById('h-toward').value = Math.floor(t.timeToward / 60) || "";
-            document.getElementById('m-toward').value = t.timeToward % 60 || "";
+            document.getElementById('h-total').value = Math.floor(t.timeTotal / 60);
+            document.getElementById('m-total').value = t.timeTotal % 60;
             document.getElementById('inp-km').value = t.km;
             document.getElementById('btn-save').innerText = "ОБНОВИТЬ";
-            document.getElementById('btn-save').classList.add('edit-mode');
             window.scrollTo(0,0);
         }
 
         window.adminLogin = function() {
-            if(window.isAdmin) { 
-                window.isAdmin = false; 
-                document.getElementById('admin-section').style.display = 'none'; 
-                return; 
-            }
-            const pass = prompt("Пароль доступа:");
-            if(pass === window.SECRET_PASS) {
+            const pass = prompt("Пароль:");
+            if(pass === "7878") {
                 window.isAdmin = true;
                 document.getElementById('admin-section').style.display = 'grid';
             }
         }
 
-        function formatTime(totalMinutes) {
-            const h = Math.floor(totalMinutes / 60);
-            const m = totalMinutes % 60;
-            return h > 0 ? `${h} ч. ${m} мин.` : `${m} мин.`;
-        }
-
         function renderTable() {
             const tbody = document.getElementById('table-body');
-            if(!tbody) return;
             tbody.innerHTML = "";
             let tk = 0, tm = 0;
-
-            // Вывод записей (новые сверху)
             [...window.myTrips].reverse().forEach(t => {
                 tk += t.km; tm += t.timeTotal;
                 tbody.innerHTML += `<tr>
-                    <td>
-                        <strong>${t.district}</strong>
-                        ${t.place ? `<span class="place-subtext">${t.place}</span>` : ''}
-                    </td>
+                    <td><strong>${t.district}</strong><br><small>${t.place||''}</small></td>
                     <td>${t.date}</td>
-                    <td>
-                        ${formatTime(t.timeTotal)}
-                        ${t.timeToward > 0 ? `<span class="place-subtext">Туда: ${formatTime(t.timeToward)}</span>` : ''}
-                    </td>
+                    <td>${Math.floor(t.timeTotal/60)}ч ${t.timeTotal%60}м</td>
                     <td>${t.km} км</td>
-                    <td>
-                        <div class="controls">
-                            <button class="control-btn edit-btn" onclick="editTrip('${t.id}')">✏️</button>
-                            <button class="control-btn del-btn" onclick="deleteTrip('${t.id}')">🗑</button>
-                        </div>
-                    </td>
+                    <td><button onclick="editTrip('${t.id}')">✏️</button> <button onclick="deleteTrip('${t.id}')">🗑</button></td>
                 </tr>`;
             });
-
             document.getElementById('stat-dist').innerText = tk + " км";
-            document.getElementById('stat-time').innerText = formatTime(tm);
+            document.getElementById('stat-time').innerText = Math.floor(tm/60) + " ч " + (tm%60) + " м";
             document.getElementById('stat-count').innerText = window.myTrips.length;
         }
 
         function clearInputs() {
-            ['inp-district', 'inp-place', 'inp-date', 'h-total', 'm-total', 'h-toward', 'm-toward', 'inp-km'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.value = "";
-            });
+            ['inp-district', 'inp-place', 'inp-date', 'h-total', 'm-total', 'h-toward', 'm-toward', 'inp-km'].forEach(id => document.getElementById(id).value = "");
         }
-    </script>
 
-    <script>
-        // Прелоадер
-        function startLoading() {
+        window.startLoading = function() {
             const btn = document.getElementById('power-btn');
-            const status = document.getElementById('loader-status');
             btn.classList.add('btn-clicked');
-            setTimeout(() => {
-                status.style.opacity = '1';
-                let count = 0;
-                const counter = setInterval(() => {
-                    count += 20;
-                    if (count >= 100) {
-                        count = 100; clearInterval(counter);
-                        setTimeout(() => { document.body.classList.add('loaded'); }, 200);
-                    }
-                    status.innerText = count + '%';
-                }, 40);
-            }, 800);
+            setTimeout(() => { document.body.classList.add('loaded'); }, 1500);
         }
     </script>
 </body>
