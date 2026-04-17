@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kharkiv Explorer 2026 | Bike Journal</title>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #00d2ff;
@@ -193,74 +191,61 @@
 
     <div class="lock-icon" onclick="adminLogin()">🔒</div>
 
-    <script>
-        // ТВОИ КЛЮЧИ ОТ FIREBASE
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyDSfkUr0qnsR3054L7NtyC2NWOnpNCmOvg",
+            apiKey: "AIzaSyDSfkUr0qnsR3O54L7NtYc2NWOnpNCmOvg",
             authDomain: "velojournall.firebaseapp.com",
             databaseURL: "https://velojournall-default-rtdb.firebaseio.com",
             projectId: "velojournall",
-            storageBucket: "velojournall.appspot.com",
+            storageBucket: "velojournall.firebasestorage.app",
             messagingSenderId: "282868917010",
-            appId: "1:282868917010:web:de000212f41f5ee31cc0eb"
+            appId: "1:282868917010:web:dc8880d84f445ca21ec9cb"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const tripsRef = ref(db, 'trips');
 
-        const SECRET_PASS = "7878"; 
-        let isAdmin = false;
-        let editId = null; 
         let myTrips = [];
+        window.SECRET_PASS = "7878"; 
+        window.isAdmin = false;
+        window.editId = null;
 
-        function adminLogin() {
-            if(isAdmin) { isAdmin = false; document.getElementById('admin-section').style.display = 'none'; return; }
+        // Загрузка данных из Firebase
+        onValue(tripsRef, (snapshot) => {
+            const data = snapshot.val();
+            myTrips = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    myTrips.push({ id: key, ...data[key] });
+                });
+            }
+            renderTable();
+        });
+
+        window.adminLogin = function() {
+            if(window.isAdmin) { 
+                window.isAdmin = false; 
+                document.getElementById('admin-section').style.display = 'none'; 
+                return; 
+            }
             const pass = prompt("Пароль доступа:");
-            if(pass === SECRET_PASS) {
-                isAdmin = true;
+            if(pass === window.SECRET_PASS) {
+                window.isAdmin = true;
                 document.getElementById('admin-section').style.display = 'grid';
             }
         }
 
-        function startLoading() {
-            const btn = document.getElementById('power-btn');
-            const status = document.getElementById('loader-status');
-            btn.classList.add('btn-clicked');
-            setTimeout(() => {
-                status.style.opacity = '1';
-                let count = 0;
-                const counter = setInterval(() => {
-                    count += 20;
-                    if (count >= 100) {
-                        count = 100; clearInterval(counter);
-                        setTimeout(() => { document.body.classList.add('loaded'); loadFromCloud(); }, 200);
-                    }
-                    status.innerText = count + '%';
-                }, 40);
-            }, 800);
-        }
-
-        function formatTime(totalMinutes) {
-            const h = Math.floor(totalMinutes / 60);
-            const m = totalMinutes % 60;
-            return h > 0 ? `${h} ч. ${m} мин.` : `${m} мин.`;
-        }
-
-        // ЗАГРУЗКА ИЗ ОБЛАКА
-        function loadFromCloud() {
-            db.ref('trips').on('value', (snapshot) => {
-                myTrips = snapshot.val() || [];
-                renderTable();
-            });
-        }
-
-        function handleSave() {
-            if(!isAdmin) return;
+        window.handleSave = function() {
+            if(!window.isAdmin) return;
             
             const totalMin = (Number(document.getElementById('h-total').value) * 60) + Number(document.getElementById('m-total').value);
             const towardMin = (Number(document.getElementById('h-toward').value) * 60) + Number(document.getElementById('m-toward').value);
 
-            const data = {
+            const tripData = {
                 district: document.getElementById('inp-district').value,
                 place: document.getElementById('inp-place').value,
                 date: document.getElementById('inp-date').value,
@@ -269,34 +254,23 @@
                 km: Number(document.getElementById('inp-km').value)
             };
 
-            if(!data.district || totalMin <= 0) return alert("Заполни район и общее время!");
+            if(!tripData.district || totalMin <= 0) return alert("Заполни район и общее время!");
 
-            if(editId) {
-                // Обновляем существующую
-                const index = myTrips.findIndex(t => t.id === editId);
-                if(index !== -1) myTrips[index] = { ...myTrips[index], ...data };
-                editId = null;
+            if(window.editId) {
+                set(ref(db, 'trips/' + window.editId), tripData);
+                window.editId = null;
                 document.getElementById('btn-save').innerText = "СОХРАНИТЬ";
                 document.getElementById('btn-save').classList.remove('edit-mode');
             } else {
-                // Добавляем новую
-                myTrips.push({ id: Date.now(), ...data });
+                push(tripsRef, tripData);
             }
-
-            db.ref('trips').set(myTrips); // Сохраняем в облако
             clearInputs();
         }
 
-        function clearInputs() {
-            ['inp-district', 'inp-place', 'inp-date', 'h-total', 'm-total', 'h-toward', 'm-toward', 'inp-km'].forEach(id => {
-                document.getElementById(id).value = "";
-            });
-        }
-
-        function editTrip(id) {
+        window.editTrip = function(id) {
             const t = myTrips.find(t => t.id === id);
             if(!t) return;
-            editId = id;
+            window.editId = id;
             document.getElementById('inp-district').value = t.district;
             document.getElementById('inp-place').value = t.place || "";
             document.getElementById('inp-date').value = t.date;
@@ -310,12 +284,17 @@
             window.scrollTo(0,0);
         }
 
-        function deleteTrip(id) {
-            if(!isAdmin) return;
-            if(confirm("Удалить эту запись?")) { 
-                myTrips = myTrips.filter(t => t.id !== id); 
-                db.ref('trips').set(myTrips); // Удаляем из облака
+        window.deleteTrip = function(id) {
+            if(!window.isAdmin) return;
+            if(confirm("Удалить эту запись из облака?")) { 
+                remove(ref(db, 'trips/' + id));
             }
+        }
+
+        function formatTime(totalMinutes) {
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            return h > 0 ? `${h} ч. ${m} мин.` : `${m} мин.`;
         }
 
         function renderTable() {
@@ -323,7 +302,7 @@
             tbody.innerHTML = "";
             let tk = 0, tm = 0;
 
-            myTrips.forEach(t => {
+            myTrips.reverse().forEach(t => {
                 tk += t.km; tm += t.timeTotal;
                 tbody.innerHTML += `<tr>
                     <td>
@@ -335,11 +314,11 @@
                         ${formatTime(t.timeTotal)}
                         ${t.timeToward > 0 ? `<span class="place-subtext">Туда: ${formatTime(t.timeToward)}</span>` : ''}
                     </td>
-                    <td>${t.km} Км</td>
+                    <td>${t.km} км</td>
                     <td>
                         <div class="controls">
-                            <button class="control-btn edit-btn" onclick="editTrip(${t.id})">✏️</button>
-                            <button class="control-btn del-btn" onclick="deleteTrip(${t.id})">🗑</button>
+                            <button class="control-btn edit-btn" onclick="editTrip('${t.id}')">✏️</button>
+                            <button class="control-btn del-btn" onclick="deleteTrip('${t.id}')">🗑</button>
                         </div>
                     </td>
                 </tr>`;
@@ -348,6 +327,32 @@
             document.getElementById('stat-dist').innerText = tk + " км";
             document.getElementById('stat-time').innerText = formatTime(tm);
             document.getElementById('stat-count').innerText = myTrips.length;
+        }
+
+        function clearInputs() {
+            ['inp-district', 'inp-place', 'inp-date', 'h-total', 'm-total', 'h-toward', 'm-toward', 'inp-km'].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+        }
+    </script>
+
+    <script>
+        function startLoading() {
+            const btn = document.getElementById('power-btn');
+            const status = document.getElementById('loader-status');
+            btn.classList.add('btn-clicked');
+            setTimeout(() => {
+                status.style.opacity = '1';
+                let count = 0;
+                const counter = setInterval(() => {
+                    count += 20;
+                    if (count >= 100) {
+                        count = 100; clearInterval(counter);
+                        setTimeout(() => { document.body.classList.add('loaded'); }, 200);
+                    }
+                    status.innerText = count + '%';
+                }, 40);
+            }, 800);
         }
     </script>
 </body>
