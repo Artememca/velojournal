@@ -195,6 +195,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Твои настройки Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDSfkUr0qnsR3O54L7NtYc2NWOnpNCmOvg",
             authDomain: "velojournall.firebaseapp.com",
@@ -214,7 +215,7 @@
         window.isAdmin = false;
         window.editId = null;
 
-        // Загрузка данных из Firebase
+        // Загрузка данных из облака
         onValue(tripsRef, (snapshot) => {
             const data = snapshot.val();
             myTrips = [];
@@ -302,7 +303,8 @@
             tbody.innerHTML = "";
             let tk = 0, tm = 0;
 
-            myTrips.reverse().forEach(t => {
+            // Сортировка по дате (новые сверху)
+            myTrips.slice().reverse().forEach(t => {
                 tk += t.km; tm += t.timeTotal;
                 tbody.innerHTML += `<tr>
                     <td>
@@ -337,6 +339,7 @@
     </script>
 
     <script>
+        // Код прелоадера
         function startLoading() {
             const btn = document.getElementById('power-btn');
             const status = document.getElementById('loader-status');
