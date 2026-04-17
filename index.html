@@ -214,6 +214,7 @@
         window.isAdmin = false;
         window.editId = null;
 
+        // Загрузка данных из Firebase
         onValue(tripsRef, (snapshot) => {
             const data = snapshot.val();
             myTrips = [];
@@ -301,7 +302,7 @@
             tbody.innerHTML = "";
             let tk = 0, tm = 0;
 
-            myTrips.slice().reverse().forEach(t => {
+            myTrips.reverse().forEach(t => {
                 tk += t.km; tm += t.timeTotal;
                 tbody.innerHTML += `<tr>
                     <td>
