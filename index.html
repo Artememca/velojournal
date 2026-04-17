@@ -195,6 +195,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Твои настройки Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDSfkUr0qnsR3O54L7NtYc2NWOnpNCmOvg",
             authDomain: "velojournall.firebaseapp.com",
@@ -209,36 +210,25 @@
         const db = getDatabase(app);
         const tripsRef = ref(db, 'trips');
 
-        let myTrips = [];
+        // Глобальные переменные для доступа из HTML
         window.SECRET_PASS = "7878"; 
         window.isAdmin = false;
         window.editId = null;
+        window.myTrips = [];
 
-        // Синхронизация с облаком
+        // 1. ЗАГРУЗКА ИЗ ОБЛАКА (Синхронизация)
         onValue(tripsRef, (snapshot) => {
             const data = snapshot.val();
-            myTrips = [];
+            window.myTrips = [];
             if (data) {
                 Object.keys(data).forEach(key => {
-                    myTrips.push({ id: key, ...data[key] });
+                    window.myTrips.push({ id: key, ...data[key] });
                 });
             }
             renderTable();
         });
 
-        window.adminLogin = function() {
-            if(window.isAdmin) { 
-                window.isAdmin = false; 
-                document.getElementById('admin-section').style.display = 'none'; 
-                return; 
-            }
-            const pass = prompt("Пароль доступа:");
-            if(pass === window.SECRET_PASS) {
-                window.isAdmin = true;
-                document.getElementById('admin-section').style.display = 'grid';
-            }
-        }
-
+        // 2. ФУНКЦИЯ СОХРАНЕНИЯ (Firebase push/set)
         window.handleSave = function() {
             if(!window.isAdmin) return;
             
@@ -257,18 +247,30 @@
             if(!tripData.district || totalMin <= 0) return alert("Заполни район и время!");
 
             if(window.editId) {
+                // Обновление существующего узла по ID
                 set(ref(db, 'trips/' + window.editId), tripData);
                 window.editId = null;
                 document.getElementById('btn-save').innerText = "СОХРАНИТЬ";
                 document.getElementById('btn-save').classList.remove('edit-mode');
             } else {
+                // Добавление нового узла в Firebase
                 push(tripsRef, tripData);
             }
             clearInputs();
         }
 
+        // 3. ФУНКЦИЯ УДАЛЕНИЯ (Firebase remove)
+        window.deleteTrip = function(id) {
+            if(!window.isAdmin) return;
+            // Теперь id — это строка вроде "-N...". Кавычки обязательны!
+            if(confirm("Удалить запись из облака?")) { 
+                remove(ref(db, 'trips/' + id));
+            }
+        }
+
+        // 4. РЕДАКТИРОВАНИЕ
         window.editTrip = function(id) {
-            const t = myTrips.find(t => t.id === id);
+            const t = window.myTrips.find(t => t.id === id);
             if(!t) return;
             window.editId = id;
             document.getElementById('inp-district').value = t.district;
@@ -284,10 +286,16 @@
             window.scrollTo(0,0);
         }
 
-        window.deleteTrip = function(id) {
-            if(!window.isAdmin) return;
-            if(confirm("Удалить эту запись из Firebase?")) { 
-                remove(ref(db, 'trips/' + id));
+        window.adminLogin = function() {
+            if(window.isAdmin) { 
+                window.isAdmin = false; 
+                document.getElementById('admin-section').style.display = 'none'; 
+                return; 
+            }
+            const pass = prompt("Пароль доступа:");
+            if(pass === window.SECRET_PASS) {
+                window.isAdmin = true;
+                document.getElementById('admin-section').style.display = 'grid';
             }
         }
 
@@ -299,10 +307,12 @@
 
         function renderTable() {
             const tbody = document.getElementById('table-body');
+            if(!tbody) return;
             tbody.innerHTML = "";
             let tk = 0, tm = 0;
 
-            myTrips.slice().reverse().forEach(t => {
+            // Вывод записей (новые сверху)
+            [...window.myTrips].reverse().forEach(t => {
                 tk += t.km; tm += t.timeTotal;
                 tbody.innerHTML += `<tr>
                     <td>
@@ -326,12 +336,13 @@
 
             document.getElementById('stat-dist').innerText = tk + " км";
             document.getElementById('stat-time').innerText = formatTime(tm);
-            document.getElementById('stat-count').innerText = myTrips.length;
+            document.getElementById('stat-count').innerText = window.myTrips.length;
         }
 
         function clearInputs() {
             ['inp-district', 'inp-place', 'inp-date', 'h-total', 'm-total', 'h-toward', 'm-toward', 'inp-km'].forEach(id => {
-                document.getElementById(id).value = "";
+                const el = document.getElementById(id);
+                if(el) el.value = "";
             });
         }
     </script>
