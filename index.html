@@ -4,132 +4,687 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kharkiv Explorer 2026 | Bike Journal</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
+        /* ========================================
+           ОСНОВНЫЕ ПЕРЕМЕННЫЕ И ЦВЕТА
+           ========================================
+        */
         :root {
             --primary: #00d2ff;
             --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-bg: rgba(30, 41, 59, 0.4);
             --text: #f1f5f9;
             --accent: #10b981;
             --edit-color: #f59e0b;
+            --on-road: #adff2f;
+            --glass-blur: blur(12px);
         }
 
+        /* ========================================
+           БАЗОВЫЕ СТИЛИ
+           ========================================
+        */
         body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
+            margin: 0; 
+            padding: 0;
+            width: 100%; 
+            height: 100%;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: var(--text);
+            overflow-x: hidden;
         }
 
-        /* --- ПРЕЛОАДЕР --- */
+        /* ========================================
+           ПРЕЛОАДЕР (ЭКРАН ЗАГРУЗКИ)
+           ========================================
+        */
         #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.8)),
-                url('https://images.unsplash.com/photo-1502600148151-a49ca3e11523?q=80&w=1920') no-repeat center center;
-            background-size: cover;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: var(--bg);
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .video-bg {
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.4;
+            z-index: 0;
         }
 
         #power-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(8px); color: white; width: 280px; height: 70px;
-            font-size: 1.1rem; text-transform: uppercase; letter-spacing: 5px;
-            border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px); 
+            color: white; 
+            width: 280px; 
+            height: 70px;
+            font-size: 1.1rem; 
+            text-transform: uppercase; 
+            letter-spacing: 5px;
+            border-radius: 12px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: 0.3s;
         }
 
-        #bike-icon { width: 50px; height: 50px; fill: white; display: none; position: absolute; }
-        .btn-clicked { animation: rotate 0.5s ease-in-out; pointer-events: none; }
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        .btn-clicked #btn-text { opacity: 0; }
-        .btn-clicked #bike-icon { display: block; animation: drive 0.8s 0.5s ease-in forwards; }
-        @keyframes drive { 100% { transform: translateX(150vw); } }
-        #loader-status { margin-top: 30px; font-size: 3rem; color: var(--primary); opacity: 0; }
+        #power-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
 
-        /* --- КОНТЕНТ --- */
-        #main-content { display: none; padding: 30px 15px; min-height: 100vh; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        #bike-icon { 
+            width: 50px; 
+            height: 50px; 
+            fill: white; 
+            display: none; 
+            position: absolute; 
+        }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
-        .stat-value { display: block; font-size: 1.3rem; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
+        .btn-clicked { 
+            animation: rotate 0.5s ease-in-out; 
+            pointer-events: none; 
+        }
 
-        /* АДМИН ПАНЕЛЬ */
+        @keyframes rotate { 
+            100% { transform: rotate(360deg); } 
+        }
+
+        .btn-clicked #btn-text { 
+            opacity: 0; 
+        }
+
+        .btn-clicked #bike-icon { 
+            display: block; 
+            animation: drive 0.8s 0.5s ease-in forwards; 
+        }
+
+        @keyframes drive { 
+            100% { transform: translateX(150vw); } 
+        }
+
+        #loader-status { 
+            position: relative; 
+            z-index: 2; 
+            margin-top: 30px; 
+            font-size: 3rem; 
+            color: var(--primary); 
+            opacity: 0; 
+            transition: 0.5s;
+        }
+
+        /* ========================================
+           ОСНОВНОЙ КОНТЕНТ
+           ========================================
+        */
+        #main-content { 
+            display: none; 
+            padding: 30px 15px; 
+            min-height: 100vh; 
+            position: relative; 
+        }
+
+        .container { 
+            max-width: 1100px; 
+            margin: 0 auto; 
+        }
+
+        /* ========================================
+           ПОИСКОВАЯ СИСТЕМА
+           ========================================
+        */
+        .search-container {
+            position: absolute; 
+            top: 20px; 
+            right: 20px;
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end;
+            z-index: 10;
+        }
+
+        .search-input {
+            width: 0; 
+            opacity: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--primary);
+            border-radius: 8px; 
+            padding: 8px 0;
+            color: white; 
+            outline: none;
+            transition: all 0.4s ease;
+            font-size: 0.9rem;
+        }
+
+        .search-input.active {
+            width: 200px; 
+            opacity: 1;
+            padding: 8px 12px; 
+            margin-right: 10px;
+        }
+
+        .search-trigger {
+            width: 42px; 
+            height: 42px;
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+
+        .search-trigger:hover { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); 
+        }
+
+        /* ========================================
+           ИНДИКАТОР ПУТИ
+           ========================================
+        */
+        #road-status {
+            display: none;
+            background: rgba(173, 255, 47, 0.1);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--on-road);
+            color: var(--on-road);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin: 10px auto 20px auto;
+            width: fit-content;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .dot {
+            width: 8px; 
+            height: 8px; 
+            background: var(--on-road);
+            border-radius: 50%; 
+            display: inline-block;
+            box-shadow: 0 0 10px var(--on-road);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ========================================
+           ВИДЖЕТЫ СТАТИСТИКИ
+           ========================================
+        */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 25px; 
+            margin-top: 20px; 
+        }
+
+        .stat-card { 
+            background: var(--card-bg); 
+            backdrop-filter: var(--glass-blur); 
+            padding: 20px; 
+            border-radius: 15px; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            text-align: center; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .stat-value { 
+            display: block; 
+            font-size: 1.3rem; 
+            font-weight: bold; 
+            color: var(--primary); 
+            margin-bottom: 5px; 
+        }
+
+        /* ========================================
+           ПАНЕЛЬ УПРАВЛЕНИЯ (АДМИНКА)
+           ========================================
+        */
         #admin-section {
             display: none;
             background: rgba(255, 255, 255, 0.03);
-            padding: 20px; border-radius: 20px; margin-bottom: 25px;
+            backdrop-filter: var(--glass-blur);
+            padding: 20px; 
+            border-radius: 20px; 
+            margin-bottom: 25px;
             border: 1px solid var(--primary);
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+            gap: 12px;
+            animation: fadeInUp 0.5s ease;
         }
 
-        .input-box { display: flex; flex-direction: column; gap: 4px; }
-        .input-box label { font-size: 0.65rem; color: var(--primary); text-transform: uppercase; margin-left: 5px; font-weight: bold; }
+        .input-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+        }
 
-        .time-group { display: flex; gap: 5px; }
+        .input-box label { 
+            font-size: 0.65rem; 
+            color: var(--primary); 
+            text-transform: uppercase; 
+            margin-left: 5px; 
+            font-weight: bold; 
+        }
+
+        .time-group { 
+            display: flex; 
+            gap: 5px; 
+        }
 
         input { 
             background: rgba(255,255,255,0.05); 
             border: 1px solid rgba(255,255,255,0.2); 
-            padding: 10px; color: white; border-radius: 8px; outline: none; 
-            width: 100%; box-sizing: border-box; font-size: 0.9rem;
+            padding: 10px; 
+            color: white; 
+            border-radius: 8px; 
+            outline: none; 
+            width: 100%; 
+            box-sizing: border-box;
+            transition: 0.3s;
         }
-        
-        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+
+        input:focus { 
+            border-color: var(--primary); 
+            background: rgba(255,255,255,0.1);
+        }
 
         .btn-action { 
-            border: none; font-weight: bold; cursor: pointer; border-radius: 8px; 
-            color: white; height: 42px; margin-top: auto; transition: 0.2s;
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            color: white; 
+            height: 42px; 
+            margin-top: auto;
+            transition: 0.3s;
         }
-        .btn-action:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
         #btn-save { background: var(--accent); }
         #btn-save.edit-mode { background: var(--edit-color); }
+        
+        .road-controls { 
+            display: flex; 
+            gap: 5px; 
+            margin-top: auto; 
+            flex-wrap: wrap; 
+        }
 
-        /* ТАБЛИЦА */
-        .table-container { background: var(--card-bg); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 650px; }
-        th { padding: 15px 20px; text-transform: uppercase; font-size: 0.7rem; color: var(--primary); background: rgba(255, 255, 255, 0.03); letter-spacing: 1px; }
-        td { padding: 15px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem; vertical-align: middle; }
+        #inp-road-text { 
+            flex-grow: 1; 
+            min-width: 120px; 
+        }
+        
+        .timer-btn { 
+            padding: 0 10px; 
+            font-size: 0.7rem; 
+            letter-spacing: 1px; 
+        }
 
-        .controls { display: flex; gap: 8px; }
-        .control-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.5; transition: 0.2s; }
-        .control-btn:hover { opacity: 1; transform: scale(1.2); }
+        #btn-start-trip { background: #3b82f6; }
+        #btn-half-trip { background: #8b5cf6; display: none; }
+        #btn-end-trip { background: #ef4444; display: none; }
+        #live-timer { 
+            color: var(--on-road); 
+            font-family: monospace; 
+            font-size: 0.9rem; 
+            margin-left: 5px; 
+            display: none; 
+        }
+
+        /* ========================================
+           ТАБЛИЦА ЗАПИСЕЙ
+           ========================================
+        */
+        .table-container { 
+            background: var(--card-bg); 
+            backdrop-filter: var(--glass-blur);
+            border-radius: 15px; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            overflow-x: auto; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            margin-bottom: 50px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left; 
+            min-width: 650px; 
+            table-layout: fixed; 
+        }
+
+        th { 
+            padding: 15px 20px; 
+            text-transform: uppercase; 
+            font-size: 0.7rem; 
+            color: var(--primary); 
+            background: rgba(255, 255, 255, 0.05); 
+        }
+
+        td { 
+            padding: 15px 20px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+            font-size: 0.85rem; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .controls { 
+            display: flex; 
+            gap: 8px; 
+        }
+
+        .control-btn { 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 1.1rem; 
+            opacity: 0.5; 
+            transition: 0.2s; 
+        }
+
+        .control-btn:hover { 
+            opacity: 1; 
+            transform: scale(1.2); 
+        }
+
         .edit-btn { color: var(--edit-color); }
         .del-btn { color: #ef4444; }
 
         .lock-icon {
-            position: fixed; bottom: 20px; right: 20px;
-            width: 45px; height: 45px; background: var(--card-bg);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border: 1px solid rgba(255,255,255,0.1); z-index: 100;
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px;
+            width: 45px; 
+            height: 45px; 
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            z-index: 100;
+            transition: 0.3s;
         }
 
+        .lock-icon.unlocked { 
+            border-color: var(--primary); 
+            color: var(--primary); 
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); 
+        }
+
+        /* ========================================
+           БЛОК ЧАТА И ПРЕДЛОЖЕНИЙ
+           ========================================
+        */
+        .chat-wrapper {
+            position: fixed; 
+            bottom: 20px; 
+            left: 20px;
+            width: 320px; 
+            z-index: 100;
+        }
+
+        .chat-container {
+            display: none; 
+            flex-direction: column;
+            background: var(--card-bg); 
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 15px;
+            height: 450px; 
+            margin-bottom: 10px; 
+            overflow: hidden;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .chat-header {
+            padding: 12px; 
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: bold; 
+            font-size: 0.8rem; 
+            color: var(--primary);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+
+        #chat-messages {
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+
+        .msg {
+            background: rgba(255, 255, 255, 0.05); 
+            padding: 10px 12px;
+            border-radius: 10px; 
+            border-left: 3px solid var(--primary);
+            position: relative; 
+            animation: fadeInUp 0.3s ease;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .msg:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .msg-text { 
+            font-size: 0.85rem; 
+            word-break: break-word; 
+            line-height: 1.4;
+        }
+
+        .msg-del {
+            position: absolute; 
+            top: 5px; 
+            right: 8px; 
+            cursor: pointer;
+            color: #ef4444; 
+            font-size: 0.75rem; 
+            display: none;
+            opacity: 0.6;
+        }
+
+        .msg-del:hover { opacity: 1; }
+
+        .chat-input-area {
+            padding: 12px; 
+            display: flex; 
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        #chat-input { 
+            flex-grow: 1; 
+            font-size: 0.85rem; 
+            height: 38px; 
+            border-radius: 20px;
+            padding: 0 15px;
+        }
+
+        .chat-toggle {
+            width: 55px; 
+            height: 55px; 
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur); 
+            border-radius: 50%;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.6rem; 
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .chat-toggle:hover { 
+            border-color: var(--primary); 
+            transform: scale(1.1) rotate(5deg); 
+        }
+
+        /* ========================================
+           ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ И АНИМАЦИИ
+           ========================================
+        */
         body.loaded #preloader { display: none; }
         body.loaded #main-content { display: block; }
-        .place-subtext { color: #94a3b8; font-size: 0.75rem; display: block; margin-top: 2px; }
+        
+        .place-subtext { 
+            color: #94a3b8; 
+            font-size: 0.75rem; 
+            display: block; 
+            margin-top: 2px; 
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .row-animate { animation: fadeInUp 0.5s ease backwards; }
+        
+        #typewriter-title::after {
+            content: '|';
+            animation: blink 0.7s infinite;
+            margin-left: 5px;
+            color: var(--primary);
+        }
+
+        @keyframes blink { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0; } 
+        }
+
+        /* Стилизация скроллбара */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--card-bg); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
 <body>
 
     <div id="preloader">
+        <video class="video-bg" autoplay muted loop playsinline>
+            <source src="https://cdn.pixabay.com/video/2023/10/20/185805-876527027_large.mp4" type="video/mp4">
+        </video>
+        <div id="particles-js"></div>
         <button id="power-btn" onclick="startLoading()">
             <span id="btn-text">ПОЕХАЛИ!</span>
-            <svg id="bike-icon" viewBox="0 0 64 64"><path d="M49.6,38.4c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S54,38.4,49.6,38.4z M49.6,51.2c-2.6,0-4.8-2.1-4.8-4.8s2.1-4.8,4.8-4.8s4.8,2.1,4.8,4.8S52.2,51.2,49.6,51.2z M14.4,38.4c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S18.8,38.4,14.4,38.4z M14.4,51.2c-2.6,0-4.8-2.1-4.8-4.8s2.1-4.8,4.8-4.8s4.8,2.1,4.8,4.8S17,51.2,14.4,51.2z M56,22.4h-9.8l-4.7-9.4C40.6,11.2,38.9,10,36.9,10H24c-2.2,0-4,1.8-4,4v2H12c-2.2,0-4,1.8-4,4v2h4v-2h8v22.2c-2.4,1.4-4,4-4,7c0,4.4,3.6,8,8,8s8-3.6,8-8c0-2.8-1.5-5.2-3.7-6.6l3.4-12.2h10.9l3.4,6.8c-2.2,1.4-3.7,3.8-3.7,6.6c0,4.4,3.6,8,8,8s8-3.6,8-8C64,42.4,60.4,38.8,56,38.4V22.4z"></path></svg>
+            <svg id="bike-icon" viewBox="0 0 64 64">
+                <path d="M49.6,38.4c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S54,38.4,49.6,38.4z M49.6,51.2c-2.6,0-4.8-2.1-4.8-4.8s2.1-4.8,4.8-4.8s4.8,2.1,4.8,4.8S52.2,51.2,49.6,51.2z M14.4,38.4c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S18.8,38.4,14.4,38.4z M14.4,51.2c-2.6,0-4.8-2.1-4.8-4.8s2.1-4.8,4.8-4.8s4.8,2.1,4.8,4.8S17,51.2,14.4,51.2z M56,22.4h-9.8l-4.7-9.4C40.6,11.2,38.9,10,36.9,10H24c-2.2,0-4,1.8-4,4v2H12c-2.2,0-4,1.8-4,4v2h4v-2h8v22.2c-2.4,1.4-4,4-4,7c0,4.4,3.6,8,8,8s8-3.6,8-8c0-2.8-1.5-5.2-3.7-6.6l3.4-12.2h10.9l3.4,6.8c-2.2,1.4-3.7,3.8-3.7,6.6c0,4.4,3.6,8,8,8s8-3.6,8-8C64,42.4,60.4,38.8,56,38.4V22.4z"></path>
+            </svg>
         </button>
         <div id="loader-status">0%</div>
     </div>
 
     <div id="main-content">
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Искать место..." oninput="renderTable()">
+            <div class="search-trigger" onclick="toggleSearch()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+        </div>
+
         <div class="container">
             <header style="text-align: center; margin-bottom: 30px;">
-                <h1 style="letter-spacing: 2px;">KHARKIV EXPLORER 2026</h1>
-                <p style="color: #94a3b8; font-size: 0.9rem;">Вело-журнал Артемки</p>
+                <h1 id="typewriter-title" style="letter-spacing: 2px; min-height: 1.2em; font-size: 2.5rem; margin: 0;"></h1>
+                <div id="road-status">
+                    <span class="dot"></span> 
+                    <span id="road-text-display">Загрузка статуса...</span>
+                </div>
+                <p style="color: #94a3b8; font-size: 0.95rem; margin-top: 10px;">Вело-журнал Артемки</p>
             </header>
 
             <div class="stats-grid">
-                <div class="stat-card"><span class="stat-value" id="stat-dist">0 км</span>Общий путь</div>
-                <div class="stat-card"><span class="stat-value" id="stat-time">0 ч. 0 мин.</span>Время всего</div>
-                <div class="stat-card"><span class="stat-value" id="stat-count">0</span>Выездов</div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-dist">0 км</span>
+                    Общий путь
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-time">0 ч. 0 мин.</span>
+                    Время в седле
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-count">0</span>
+                    Всего выездов
+                </div>
             </div>
 
             <div id="admin-section">
@@ -137,17 +692,14 @@
                     <label>Район</label>
                     <input type="text" id="inp-district" placeholder="Напр: Салтовка">
                 </div>
-
                 <div class="input-box">
-                    <label>Место (куда именно)</label>
+                    <label>Место</label>
                     <input type="text" id="inp-place" placeholder="Напр: Карьер">
                 </div>
-                
                 <div class="input-box">
                     <label>Дата</label>
                     <input type="date" id="inp-date">
                 </div>
-
                 <div class="input-box">
                     <label>Всего (Ч:М)</label>
                     <div class="time-group">
@@ -155,7 +707,6 @@
                         <input type="number" id="m-total" placeholder="М">
                     </div>
                 </div>
-
                 <div class="input-box">
                     <label>Туда (Ч:М)</label>
                     <div class="time-group">
@@ -163,38 +714,86 @@
                         <input type="number" id="m-toward" placeholder="М">
                     </div>
                 </div>
-
                 <div class="input-box">
                     <label>Дистанция (Км)</label>
-                    <input type="number" id="inp-km" placeholder="Всего">
+                    <input type="number" id="inp-km" placeholder="Всего км">
                 </div>
-
+                
                 <button id="btn-save" class="btn-action" onclick="handleSave()">СОХРАНИТЬ</button>
+                
+                <div class="input-box" style="grid-column: span 2;">
+                    <label>Таймер поездки <span id="live-timer">00:00</span></label>
+                    <div class="road-controls">
+                        <input type="text" id="inp-road-text" placeholder="Куда держишь путь?">
+                        <button id="btn-start-trip" class="btn-action timer-btn" onclick="startTripTimer()">СТАРТ</button>
+                        <button id="btn-half-trip" class="btn-action timer-btn" onclick="halfTripTimer()">Я ТАМ (ПОЛПУТИ)</button>
+                        <button id="btn-end-trip" class="btn-action timer-btn" onclick="endTripTimer()">ФИНИШ (ДОМА)</button>
+                    </div>
+                </div>
             </div>
 
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Маршрут</th>
-                            <th>Дата</th>
-                            <th>Время</th>
-                            <th>Км</th>
-                            <th>Действия</th>
+                            <th style="width: 30%;">Маршрут / Локация</th>
+                            <th style="width: 20%;">Дата</th>
+                            <th style="width: 20%;">Время</th>
+                            <th style="width: 15%;">Дистанция</th>
+                            <th style="width: 15%;">Управление</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body"></tbody>
+                    <tbody id="table-body">
+                        </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <div class="lock-icon" onclick="adminLogin()">🔒</div>
+    <div class="chat-wrapper">
+        <div id="chat-window" class="chat-container">
+            <div class="chat-header">
+                <span>💬 ОБСУЖДЕНИЕ / ПРЕДЛОЖЕНИЯ</span>
+                <span onclick="toggleChat()" style="cursor:pointer; font-size: 1.2rem;">✕</span>
+            </div>
+            <div id="chat-messages">
+                </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Нажми на сообщение, чтобы ответить...">
+                <button onclick="sendComment()" class="btn-action" style="margin-top:0; padding: 0 15px; border-radius: 20px;">➔</button>
+            </div>
+        </div>
+        <div class="chat-toggle" onclick="toggleChat()">💬</div>
+    </div>
+
+    <div id="lock-btn" class="lock-icon" onclick="adminAuth()">🔒</div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#00d2ff" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5, "random": false, "anim": { "enable": false } },
+                "size": { "value": 3, "random": true, "anim": { "enable": false } },
+                "line_linked": { "enable": true, "distance": 150, "color": "#00d2ff", "opacity": 0.4, "width": 1 },
+                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } }
+            },
+            "retina_detect": true
+        });
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        /* КОНФИГУРАЦИЯ БАЗЫ ДАННЫХ */
         const firebaseConfig = {
             apiKey: "AIzaSyDSfkUr0qnsR3O54L7NtYc2NWOnpNCmOvg",
             authDomain: "velojournall.firebaseapp.com",
@@ -207,146 +806,411 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // Ссылки на ветки БД
         const tripsRef = ref(db, 'trips');
+        const roadRef = ref(db, 'status/onRoad');
+        const timerRef = ref(db, 'status/timer');
+        const msgRef = ref(db, 'comments');
 
-        const SECRET_PASS = "7878"; 
+        /* ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ СОСТОЯНИЯ */
         window.isAdmin = false;
         window.editId = null; 
         window.myTrips = [];
+        let lastMessagesTimes = [];
+        let timerInterval;
 
-        window.adminLogin = function() {
-            if(window.isAdmin) { window.isAdmin = false; document.getElementById('admin-section').style.display = 'none'; return; }
-            const pass = prompt("Пароль доступа:");
-            if(pass === SECRET_PASS) {
-                window.isAdmin = true;
-                document.getElementById('admin-section').style.display = 'grid';
+        /* ЭФФЕКТ ПЕЧАТНОЙ МАШИНКИ */
+        function typeWriter(text, i, fnCallback) {
+            if (i < text.length) {
+                document.getElementById("typewriter-title").innerHTML = text.substring(0, i + 1);
+                setTimeout(function() { typeWriter(text, i + 1, fnCallback) }, 100);
+            } else if (typeof fnCallback == 'function') {
+                setTimeout(fnCallback, 700);
             }
         }
 
+        /* ПОИСК */
+        window.toggleSearch = function() {
+            const input = document.getElementById('search-input');
+            input.classList.toggle('active');
+            if(input.classList.contains('active')) input.focus();
+        }
+
+        /* АВТОРИЗАЦИЯ АДМИНА */
+        window.adminAuth = async function() {
+            const adminPanel = document.getElementById('admin-section');
+            const lockBtn = document.getElementById('lock-btn');
+            
+            if (window.isAdmin) {
+                // Выход из режима админа
+                window.isAdmin = false;
+                adminPanel.style.display = 'none';
+                lockBtn.innerHTML = '🔒';
+                lockBtn.classList.remove('unlocked');
+                Swal.fire({ icon: 'info', title: 'Режим гостя', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+            } else {
+                // Попытка входа
+                const { value: pass } = await Swal.fire({
+                    title: 'Вход в управление',
+                    input: 'password',
+                    inputPlaceholder: 'Введите секретный код',
+                    inputAttributes: { autocapitalize: 'off' },
+                    showCancelButton: true,
+                    cancelButtonText: 'Отмена'
+                });
+
+                if (pass === "7878") {
+                    window.isAdmin = true;
+                    adminPanel.style.display = 'grid';
+                    lockBtn.innerHTML = '🔓';
+                    lockBtn.classList.add('unlocked');
+                    Swal.fire({ icon: 'success', title: 'Привет, Артемка!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                } else if (pass) {
+                    Swal.fire({ icon: 'error', title: 'Доступ закрыт', text: 'Неверный пароль' });
+                }
+            }
+            // Перерисовываем комменты, чтобы появились кнопки удаления
+            renderComments(); 
+        }
+
+        /* ЗАГРУЗКА САЙТА */
         window.startLoading = function() {
             const btn = document.getElementById('power-btn');
             const status = document.getElementById('loader-status');
             btn.classList.add('btn-clicked');
+            
             setTimeout(() => {
                 status.style.opacity = '1';
                 let count = 0;
                 const counter = setInterval(() => {
-                    count += 20;
+                    count += 2; // Более плавная загрузка
                     if (count >= 100) {
-                        count = 100; clearInterval(counter);
-                        setTimeout(() => { document.body.classList.add('loaded'); }, 200);
+                        count = 100; 
+                        clearInterval(counter);
+                        setTimeout(() => { 
+                            document.body.classList.add('loaded');
+                            typeWriter("KHARKIV EXPLORER 2026", 0);
+                        }, 300);
                     }
                     status.innerText = count + '%';
-                }, 40);
+                }, 20);
             }, 800);
         }
 
+        /* ========================================
+           ЛОГИКА ТАЙМЕРА И СТАТУСА ДОРОГИ
+           ========================================
+        */
+        onValue(timerRef, (snapshot) => {
+            const data = snapshot.val();
+            const startBtn = document.getElementById('btn-start-trip');
+            const halfBtn = document.getElementById('btn-half-trip');
+            const endBtn = document.getElementById('btn-end-trip');
+            const liveTimer = document.getElementById('live-timer');
+
+            if (data && data.startTime) {
+                startBtn.style.display = 'none';
+                halfBtn.style.display = data.halfTime ? 'none' : 'block';
+                endBtn.style.display = 'block';
+                liveTimer.style.display = 'inline';
+                
+                clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    const diff = Math.floor((Date.now() - data.startTime) / 1000);
+                    const h = Math.floor(diff / 3600);
+                    const m = Math.floor((diff % 3600) / 60);
+                    const s = diff % 60;
+                    liveTimer.innerText = `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }, 1000);
+            } else {
+                startBtn.style.display = 'block'; 
+                halfBtn.style.display = 'none'; 
+                endBtn.style.display = 'none'; 
+                liveTimer.style.display = 'none';
+                clearInterval(timerInterval);
+            }
+        });
+
+        window.startTripTimer = function() {
+            if(!window.isAdmin) return;
+            const dest = document.getElementById('inp-road-text').value;
+            set(timerRef, { startTime: Date.now(), halfTime: null });
+            set(roadRef, { active: true, destination: dest });
+            document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
+        };
+
+        window.halfTripTimer = function() {
+            if(!window.isAdmin) return;
+            onValue(timerRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data && data.startTime) {
+                    const diffMin = Math.round((Date.now() - data.startTime) / 60000);
+                    document.getElementById('h-toward').value = Math.floor(diffMin / 60);
+                    document.getElementById('m-toward').value = diffMin % 60;
+                    set(timerRef, { ...data, halfTime: Date.now() });
+                }
+            }, { onlyOnce: true });
+        };
+
+        window.endTripTimer = function() {
+            if(!window.isAdmin) return;
+            onValue(timerRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data && data.startTime) {
+                    const diffMin = Math.round((Date.now() - data.startTime) / 60000);
+                    document.getElementById('h-total').value = Math.floor(diffMin / 60);
+                    document.getElementById('m-total').value = diffMin % 60;
+                    set(timerRef, null);
+                    set(roadRef, { active: false, destination: "" });
+                }
+            }, { onlyOnce: true });
+        };
+
+        onValue(roadRef, (snapshot) => {
+            const data = snapshot.val() || { active: false, destination: "" };
+            const roadBlock = document.getElementById('road-status');
+            const roadDisplay = document.getElementById('road-text-display');
+            if(data.active) {
+                roadBlock.style.display = 'flex';
+                roadDisplay.innerText = data.destination ? `Мчит в: ${data.destination}` : "Артемка в пути";
+            } else { 
+                roadBlock.style.display = 'none'; 
+            }
+        });
+
+        /* ========================================
+           РАБОТА С ТАБЛИЦЕЙ ПОЕЗДОК
+           ========================================
+        */
         onValue(tripsRef, (snapshot) => {
             const data = snapshot.val();
             window.myTrips = [];
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    window.myTrips.push({ id: key, ...data[key] });
-                });
+            if (data) { 
+                Object.keys(data).forEach(key => { 
+                    window.myTrips.push({ id: key, ...data[key] }); 
+                }); 
             }
             renderTable();
         });
 
-        function formatTime(totalMinutes) {
-            const h = Math.floor(totalMinutes / 60);
-            const m = totalMinutes % 60;
-            return h > 0 ? `${h} ч. ${m} мин.` : `${m} мин.`;
+        window.renderTable = function() {
+            const term = document.getElementById('search-input').value.toLowerCase();
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = "";
+            let tk = 0, tm = 0;
+            
+            const filtered = window.myTrips.filter(t => 
+                t.district.toLowerCase().includes(term) || (t.place && t.place.toLowerCase().includes(term))
+            );
+            
+            [...filtered].reverse().forEach((t, index) => {
+                tk += Number(t.km || 0); 
+                tm += Number(t.timeTotal || 0);
+                
+                const tr = document.createElement('tr');
+                tr.className = 'row-animate';
+                tr.style.animationDelay = `${index * 0.05}s`;
+                
+                const timeStr = `${Math.floor(t.timeTotal/60)}ч ${t.timeTotal%60}м`;
+                const towardStr = t.timeToward > 0 ? `<br><small style="color:#94a3b8">Туда: ${Math.floor(t.timeToward/60)}ч ${t.timeToward%60}м</small>` : '';
+
+                tr.innerHTML = `
+                    <td><strong>${t.district}</strong>${t.place ? `<span class="place-subtext">${t.place}</span>` : ''}</td>
+                    <td>${t.date}</td>
+                    <td>${timeStr}${towardStr}</td>
+                    <td>${t.km} км</td>
+                    <td>
+                        <div class="controls">
+                            <button class="control-btn edit-btn" onclick="editTrip('${t.id}')" title="Изменить">✏️</button>
+                            <button class="control-btn del-btn" onclick="deleteTrip('${t.id}')" title="Удалить">🗑</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Обновление статистики
+            document.getElementById('stat-dist').innerText = tk.toFixed(1) + " км";
+            document.getElementById('stat-time').innerText = Math.floor(tm/60) + " ч. " + (tm%60) + " мин.";
+            document.getElementById('stat-count').innerText = filtered.length;
         }
 
         window.handleSave = function() {
             if(!window.isAdmin) return;
             
-            const totalMin = (Number(document.getElementById('h-total').value) * 60) + Number(document.getElementById('m-total').value);
-            const towardMin = (Number(document.getElementById('h-toward').value) * 60) + Number(document.getElementById('m-toward').value);
-
             const data = {
                 district: document.getElementById('inp-district').value,
                 place: document.getElementById('inp-place').value,
                 date: document.getElementById('inp-date').value,
-                timeTotal: totalMin,
-                timeToward: towardMin, // Теперь поле «Туда» сохраняется правильно
+                timeTotal: (Number(document.getElementById('h-total').value) * 60) + Number(document.getElementById('m-total').value),
+                timeToward: (Number(document.getElementById('h-toward').value) * 60) + Number(document.getElementById('m-toward').value),
                 km: Number(document.getElementById('inp-km').value)
             };
 
-            if(!data.district || totalMin <= 0) return alert("Заполни район и общее время!");
+            if(!data.district || !data.date) {
+                return Swal.fire({ icon: 'warning', title: 'Внимание', text: 'Нужно заполнить хотя бы Район и Дату' });
+            }
 
-            if(window.editId) {
-                set(ref(db, 'trips/' + window.editId), data);
+            if(window.editId) { 
+                set(ref(db, 'trips/' + window.editId), data); 
                 window.editId = null;
                 document.getElementById('btn-save').innerText = "СОХРАНИТЬ";
                 document.getElementById('btn-save').classList.remove('edit-mode');
-            } else {
-                push(tripsRef, data);
+                Swal.fire({ icon: 'success', title: 'Обновлено', toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000 });
+            } else { 
+                push(tripsRef, data); 
+                Swal.fire({ icon: 'success', title: 'Записано!', toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000 });
             }
-            clearInputs();
-        }
 
-        function clearInputs() {
-            ['inp-district', 'inp-place', 'inp-date', 'h-total', 'm-total', 'h-toward', 'm-toward', 'inp-km'].forEach(id => {
-                document.getElementById(id).value = "";
-            });
+            // Очистка полей
+            document.querySelectorAll('#admin-section input:not(#inp-road-text)').forEach(i => i.value = "");
         }
 
         window.editTrip = function(id) {
+            if(!window.isAdmin) return Swal.fire('Упс!', 'Только Артемка может это делать', 'info');
+            
             const t = window.myTrips.find(t => t.id === id);
             if(!t) return;
+
             window.editId = id;
             document.getElementById('inp-district').value = t.district;
             document.getElementById('inp-place').value = t.place || "";
             document.getElementById('inp-date').value = t.date;
-            document.getElementById('h-total').value = Math.floor(t.timeTotal / 60) || "";
-            document.getElementById('m-total').value = t.timeTotal % 60 || "";
-            document.getElementById('h-toward').value = Math.floor(t.timeToward / 60) || "";
-            document.getElementById('m-toward').value = t.timeToward % 60 || "";
+            document.getElementById('h-total').value = Math.floor(t.timeTotal/60);
+            document.getElementById('m-total').value = t.timeTotal%60;
+            document.getElementById('h-toward').value = Math.floor(t.timeToward/60);
+            document.getElementById('m-toward').value = t.timeToward%60;
             document.getElementById('inp-km').value = t.km;
+
             document.getElementById('btn-save').innerText = "ОБНОВИТЬ";
             document.getElementById('btn-save').classList.add('edit-mode');
-            window.scrollTo(0,0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         window.deleteTrip = function(id) {
-            if(!window.isAdmin) return;
-            if(confirm("Удалить эту запись?")) { 
-                remove(ref(db, 'trips/' + id));
-            }
+            if(!window.isAdmin) return Swal.fire('Упс!', 'Только Артемка может это делать', 'info');
+            
+            Swal.fire({
+                title: 'Удалить эту поездку?',
+                text: "Восстановить её будет невозможно!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Да, удалить!',
+                cancelButtonText: 'Отмена'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    remove(ref(db, 'trips/' + id));
+                    Swal.fire('Удалено!', '', 'success');
+                }
+            });
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = "";
-            let tk = 0, tm = 0;
+        /* ========================================
+           ЛОГИКА КОММЕНТАРИЕВ И ОТВЕТОВ
+           ========================================
+        */
+        window.toggleChat = function() {
+            const win = document.getElementById('chat-window');
+            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+        };
 
-            [...window.myTrips].reverse().forEach(t => {
-                tk += t.km; tm += t.timeTotal;
-                tbody.innerHTML += `<tr>
-                    <td>
-                        <strong>${t.district}</strong>
-                        ${t.place ? `<span class="place-subtext">${t.place}</span>` : ''}
-                    </td>
-                    <td>${t.date}</td>
-                    <td>
-                        ${formatTime(t.timeTotal)}
-                        ${t.timeToward > 0 ? `<span class="place-subtext">Туда: ${formatTime(t.timeToward)}</span>` : ''}
-                    </td>
-                    <td>${t.km} км</td>
-                    <td>
-                        <div class="controls">
-                            <button class="control-btn edit-btn" onclick="editTrip('${t.id}')">✏️</button>
-                            <button class="control-btn del-btn" onclick="deleteTrip('${t.id}')">🗑</button>
-                        </div>
-                    </td>
-                </tr>`;
+        // ФУНКЦИЯ ЦИТИРОВАНИЯ/ОТВЕТА
+        window.replyTo = function(author, text) {
+            const input = document.getElementById('chat-input');
+            const shortText = text.length > 35 ? text.substring(0, 35) + "..." : text;
+            input.value = `> ${author}: "${shortText}"\n` + input.value;
+            input.focus();
+        }
+
+        window.sendComment = function() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const now = Date.now();
+            lastMessagesTimes = lastMessagesTimes.filter(t => now - t < 60000);
+            
+            if (lastMessagesTimes.length >= 5) {
+                return Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Тише-тише!', 
+                    text: 'Максимум 5 сообщений в минуту', 
+                    toast: true, 
+                    position: 'top-start', 
+                    showConfirmButton: false, 
+                    timer: 3000 
+                });
+            }
+
+            // ПРОВЕРКА ИМЕНИ: Артемка если админ, иначе Гость
+            const name = window.isAdmin ? "Артемка (Админ)" : "Гость";
+            
+            push(msgRef, { 
+                text: text, 
+                timestamp: now, 
+                author: name 
             });
 
-            document.getElementById('stat-dist').innerText = tk + " км";
-            document.getElementById('stat-time').innerText = formatTime(tm);
-            document.getElementById('stat-count').innerText = window.myTrips.length;
+            lastMessagesTimes.push(now);
+            input.value = "";
+        };
+
+        // РЕНДЕРИНГ КОММЕНТАРИЕВ
+        function renderComments() {
+            onValue(msgRef, (snapshot) => {
+                const data = snapshot.val();
+                const container = document.getElementById('chat-messages');
+                container.innerHTML = "";
+                
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const m = data[key];
+                        const div = document.createElement('div');
+                        div.className = 'msg';
+                        
+                        // Добавляем возможность ответа при клике
+                        div.onclick = (e) => {
+                            // Если нажали на корзину, отвечать не нужно
+                            if(e.target.className !== 'msg-del') {
+                                replyTo(m.author, m.text);
+                            }
+                        };
+
+                        // Обработка переносов строк для цитат
+                        const displayMsg = m.text.replace(/\n/g, '<br>');
+
+                        div.innerHTML = `
+                            <div class="msg-text">
+                                <strong style="color:var(--primary)">${m.author}:</strong><br>
+                                ${displayMsg}
+                            </div>
+                            ${window.isAdmin ? `<span class="msg-del" onclick="deleteComment('${key}')" style="display:block">🗑</span>` : ''}
+                        `;
+                        container.appendChild(div);
+                    });
+                    // Прокрутка вниз к последнему сообщению
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
         }
+
+        // Следим за базой данных в реальном времени
+        onValue(msgRef, renderComments);
+
+        window.deleteComment = function(id) {
+            if(!window.isAdmin) return;
+            remove(ref(db, 'comments/' + id));
+        };
+
+        // Дополнительные слушатели для удобства ввода
+        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendComment();
+            }
+        });
+
     </script>
 </body>
 </html>
